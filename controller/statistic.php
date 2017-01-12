@@ -15,7 +15,7 @@ if($cmd == 'getStatisticData'){
                IF (unreg.unregistered_num IS NULL, 0, unreg.unregistered_num) AS unregistered_num FROM ";
 $sql .="(SELECT DATE(dateTime) AS l_day FROM userLogins  GROUP BY DATE(dateTime) ) AS total LEFT JOIN ";
 $sql .=" (SELECT COUNT(DISTINCT userID) AS registered_num ,DATE(dateTime) AS l_day FROM userLogins WHERE ('userID'>'0') GROUP BY DATE(dateTime)) AS reg ON( total.l_day = reg.l_day) LEFT JOIN  ";
-$sql .=" (SELECT COUNT(DISTINCT userID) AS unregistered_num ,DATE(dateTime) AS l_day FROM userLogins WHERE ('userID'='0') GROUP BY DATE(dateTime))AS unreg ON( total.l_day = unreg.l_day) ";
+$sql .=" (SELECT COUNT(DISTINCT ipAddress) AS unregistered_num ,DATE(dateTime) AS l_day FROM userLogins WHERE ('userID'='0') GROUP BY DATE(dateTime))AS unreg ON( total.l_day = unreg.l_day) ";
 $sql .=" WHERE DATE(total.l_day)>='".$start_date."' AND DATE(total.l_day)<='".$end_date."'";
     
 	//$sql = "SELECT COUNT(*) as num,DATE(dateTime) as date FROM `userLogins`  WHERE DATE(dateTime)>='".$start_date."' AND DATE(dateTime)<='".$end_date."' and fullname='' GROUP BY DATE(dateTime) ORDER BY DATE(dateTime)";

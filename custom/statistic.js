@@ -19,7 +19,7 @@ $(document).ready(function () {
     }
     $('.loading_progress').hide();
     
-    var start_date = $('#start_date').daterangepicker({
+    var start_datepicker = $('#start_date').daterangepicker({
         singleDatePicker: true,
         singleClasses: "picker_3"
     }, function(start, end, label) {
@@ -27,7 +27,7 @@ $(document).ready(function () {
         start_d = dateTypeChange(start.toISOString());
         getStatisticData(start_d,end_d);
     });
-    var end_date = $('#end_date').daterangepicker({
+    var end_datepicker = $('#end_date').daterangepicker({
         singleDatePicker: true,
         singleClasses: "picker_3"
     }, function(start, end, label) {
@@ -53,8 +53,6 @@ $(document).ready(function () {
                 labels = json.labels;
                 reD = json.registered_data;
                 unreD = json.unregistered_data;
-                $('#start_date').val(start_date);
-                $('#end_date').val(end_date);
                 
                 chartViewUpdate(labels,reD,unreD);
             	}
