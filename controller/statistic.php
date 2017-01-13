@@ -14,8 +14,8 @@ if($cmd == 'getStatisticData'){
 	$sql = "SELECT total.l_day AS 'day',IF (reg.registered_num IS NULL, 0, reg.registered_num) AS registered_num, 
                IF (unreg.unregistered_num IS NULL, 0, unreg.unregistered_num) AS unregistered_num FROM ";
 $sql .="(SELECT DATE(dateTime) AS l_day FROM userLogins  GROUP BY DATE(dateTime) ) AS total LEFT JOIN ";
-$sql .=" (SELECT COUNT(DISTINCT userID) AS registered_num ,DATE(dateTime) AS l_day FROM userLogins WHERE ('userID'>'0') GROUP BY DATE(dateTime)) AS reg ON( total.l_day = reg.l_day) LEFT JOIN  ";
-$sql .=" (SELECT COUNT(DISTINCT ipAddress) AS unregistered_num ,DATE(dateTime) AS l_day FROM userLogins WHERE ('userID'='0') GROUP BY DATE(dateTime))AS unreg ON( total.l_day = unreg.l_day) ";
+$sql .=" (SELECT COUNT(DISTINCT userID) AS registered_num ,DATE(dateTime) AS l_day FROM userLogins WHERE (userID>'0') GROUP BY DATE(dateTime)) AS reg ON( total.l_day = reg.l_day) LEFT JOIN  ";
+$sql .=" (SELECT COUNT(DISTINCT ipAddress) AS unregistered_num ,DATE(dateTime) AS l_day FROM userLogins WHERE (userID='0') GROUP BY DATE(dateTime))AS unreg ON( total.l_day = unreg.l_day) ";
 $sql .=" WHERE DATE(total.l_day)>='".$start_date."' AND DATE(total.l_day)<='".$end_date."'";
     
 	//$sql = "SELECT COUNT(*) as num,DATE(dateTime) as date FROM `userLogins`  WHERE DATE(dateTime)>='".$start_date."' AND DATE(dateTime)<='".$end_date."' and fullname='' GROUP BY DATE(dateTime) ORDER BY DATE(dateTime)";
@@ -73,6 +73,8 @@ if($cmd == 'getReferersData'){
     echo json_encode($data);die();
 }
 if($cmd == 'getUsersForDate'){
+	// SELECT * FROM userlogins  WHERE userID > '0' AND DATE(DATETIME) LIKE '2016-11-20' GROUP BY userID UNION
+    // SELECT * FROM userlogins  WHERE userID = '0' AND DATE(DATETIME) LIKE '2016-11-20' GROUP BY ipAddress
     // $date_param = $_POST['date_param'];
     // $sql = "SELECT * FROM userLogins where DATE(dateTime) LIKE '".$date_param."'";
     // $result = $conn->query($sql);
@@ -102,31 +104,31 @@ $columns = array(
 $tablename = "userLogins";
 $columns_str = "autoID,userID,fullname,ipAddress,dateTime,userDevice,http_referer";
 // getting total number records without any search
-$sql = "SELECT ".$columns_str;
-$sql.=" FROM ".$tablename;
-$sql.=" WHERE ".$date_cond;
+$sql = "SELECT ".$columns_str." from ".$tablename." WHERE userID > '0' AND ".$date_cond." GROUP BY userID UNION ".
+"SELECT ".$columns_str." from ".$tablename." WHERE userID = '0' AND ".$date_cond." GROUP BY ipAddress ";
+
 $query=mysqli_query($conn, $sql) or die("referers.php: get employees");
 $totalData = mysqli_num_rows($query);
 $totalFiltered = $totalData;  // when there is no search parameter then total number rows = total number filtered rows.
 
-$sql = "SELECT ".$columns_str;
-$sql.=" FROM ".$tablename." WHERE 1=1";
-$sql.=" AND (".$date_cond.") ";    
+$sql_f = "SELECT ".$columns_str;
+$sql_f.=" FROM (".$sql.") AS userL WHERE 1=1";
+$sql_f.=" AND (".$date_cond.") ";    
 if( !empty($requestData['search']['value']) ) {   // if there is a search parameter, $requestData['search']['value'] contains search parameter
-	$sql.=" AND (autoID LIKE '".$requestData['search']['value']."%' ";    
-	$sql.=" OR userID LIKE '".$requestData['search']['value']."%' ";
-    $sql.=" OR fullname LIKE '".$requestData['search']['value']."%' ";
-	$sql.=" OR ipAddress LIKE '".$requestData['search']['value']."%' ";
-	$sql.=" OR dateTime LIKE '".$requestData['search']['value']."%' ";
-	$sql.=" OR userDevice LIKE '".$requestData['search']['value']."%' ";
-	$sql.=" OR http_referer LIKE '".$requestData['search']['value']."%' )";
+	$sql_f.=" AND (userL.autoID LIKE '".$requestData['search']['value']."%' ";    
+	$sql_f.=" OR userL.userID LIKE '".$requestData['search']['value']."%' ";
+    $sql_f.=" OR userL.fullname LIKE '".$requestData['search']['value']."%' ";
+	$sql_f.=" OR userL.ipAddress LIKE '".$requestData['search']['value']."%' ";
+	$sql_f.=" OR userL.dateTime LIKE '".$requestData['search']['value']."%' ";
+	$sql_f.=" OR userL.userDevice LIKE '".$requestData['search']['value']."%' ";
+	$sql_f.=" OR userL.http_referer LIKE '".$requestData['search']['value']."%' )";
 }
-$query=mysqli_query($conn, $sql) or die("referers.php: get employees");
+$query=mysqli_query($conn, $sql_f) or die("referers.php: get employees");
 $totalFiltered = mysqli_num_rows($query); // when there is a search parameter then we have to modify total number filtered rows as per search result. 
-$sql.=" ORDER BY ". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
+$sql_f.=" ORDER BY ". $columns[$requestData['order'][0]['column']]."   ".$requestData['order'][0]['dir']."  LIMIT ".$requestData['start']." ,".$requestData['length']."   ";
 /* $requestData['order'][0]['column'] contains colmun index, $requestData['order'][0]['dir'] contains order such as asc/desc  */	
 
-$query=mysqli_query($conn, $sql) or die("referers.php: get employees");
+$query=mysqli_query($conn, $sql_f) or die("referers.php: get employees");
 
 $data = array();
 while( $row=mysqli_fetch_array($query) ) {  // preparing an array
