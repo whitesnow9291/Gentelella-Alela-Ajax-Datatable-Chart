@@ -1,7 +1,8 @@
 $(document).ready(function() {
+	
 	var now = new Date();
 	var start_d;
-	var year = now.getFullYear();
+	var year = now.getFullYear()-1;
 	var month = now.getMonth() + 1;
 	var day = now.getDate();
 	var lineChart = null;
@@ -22,7 +23,7 @@ $(document).ready(function() {
 	}
 
 
-	$('.loading_progress').hide();
+	//$('.loading_progress').hide();
 
 	var start_datepicker = $('#start_date').daterangepicker({
 		singleDatePicker : true,
@@ -42,21 +43,23 @@ $(document).ready(function() {
 	});
 	getStatisticData(start_d, end_d);
 	function getStatisticData(start_date, end_date) {
-		$('.loading_progress').bind('ajaxStart', function() {
-			$(this).show();
-		}).bind('ajaxComplete', function() {
-			$(this).hide();
-		});
+		// $('.loading_progress').bind('ajaxStart', function() {
+			// $(this).show();
+		// }).bind('ajaxComplete', function() {
+			// $(this).hide();
+		// });
 		$.ajax({
 			cache : true,
 			dataType : 'json',
 			success : function(json) {
+				$('.overlay').hide();
 				console.log(json);
 				if (json) {
 					chart_labels = json.labels;
 					chart_data_reg = json.registered_data;
 					chart_data_unreg = json.unregistered_data;
-
+					$('#end_date').val(end_date);
+					$('#start_date').val(start_date);
 					chartViewUpdate(chart_labels);
 				}
 			},
@@ -87,8 +90,9 @@ $(document).ready(function() {
 		};
 		// Line chart
 		var ctx = document.getElementById("lineChart");
+		var chart_label_temp;
+		chart_label_temp = chart_labels;
 		if (lineChart){
-			chart_label_temp = chart_labels;
 			lineChart.destroy();
 		}
 			

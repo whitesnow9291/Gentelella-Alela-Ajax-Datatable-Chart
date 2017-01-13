@@ -26,3 +26,6 @@ div.hover_zoom_container{
 img.hover_zoom+input{
     margin-left:30px;
 }
+.dataTables_processing{
+	    padding-top: 3px !important;
+}
